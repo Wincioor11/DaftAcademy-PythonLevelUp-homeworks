@@ -37,7 +37,7 @@ def get_patient(pk: int):
     if patient_resp:
         return patient_resp.patient
     else:
-        raise HTTPException(status_code=404)  # Return HTTP 404 Not Found Error
+        raise HTTPException(status_code=204)  # Return HTTP 404 Not Found Error
 
 
 
