@@ -44,7 +44,7 @@ def get_patient(pk: int):
     if patient_resp:
         return GetPatientResp(name=patient_resp.patient.name, surename=patient_resp.patient.surename)
     else:
-        raise HTTPException(status_code=204)  # Return HTTP 404 Not Found Error
+        raise HTTPException(status_code=204, detail="No Content")  # Return HTTP 204 No Content
 
 
 @app.get('/method')
