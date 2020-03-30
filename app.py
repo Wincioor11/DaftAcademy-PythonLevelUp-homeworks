@@ -42,7 +42,7 @@ def get_patient(pk: int):
     global patients
     patient_resp = next((patient for patient in patients if patient.id == pk), None)
     if patient_resp:
-        return GetPatientResp(name=patient_resp.patient.name, surename=patient_resp.patient.surename)
+        return GetPatientResp(name='patient_resp.patient.name', surename='patient_resp.patient.surename')
     else:
         raise HTTPException(status_code=204, detail="No Content")  # Return HTTP 204 No Content
 
