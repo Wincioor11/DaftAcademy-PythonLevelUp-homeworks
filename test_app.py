@@ -6,7 +6,6 @@ client = TestClient(app)
 
 counter = 0
 
-
 def test_hello():
     response = client.get('/')
     assert response.status_code == 200
@@ -20,8 +19,11 @@ def test_method():
     assert response.json() == {"method": "GET"}
 
 
-@pytest.mark.parametrize('patient', [{'name': 'John', 'surename': 'Kowalski'}, {'name': 'Żaneta', 'surename': 'Łaput'},
-                                     {'name': 'v678%^&*UHGFR67uhgt67uko98hgef', 'surename': 'HablbaWW__loooll12(()\\'}])
+@pytest.mark.parametrize('patient', [
+                                    {'name': 'John', 'surename': 'Kowalski'},
+                                    {'name': 'Żaneta', 'surename': 'Łaput'},
+                                    {'name': 'v678%^&*UHGFR67uhgt67uko98hgef', 'surename': 'HablbaWW__loooll12(()\\'}
+                                    ])
 def test_add_patient(patient):
     global counter
     counter += 1
@@ -29,3 +31,14 @@ def test_add_patient(patient):
     assert response.status_code == 200
     assert response.json() == {"id": counter, "patient": patient}
 
+
+@pytest.mark.parametrize('pk, patient', [
+                                    pytest.param(1, {'name': 'John', 'surename': 'Kowalski'}),
+                                    pytest.param(2, {'name': 'Żaneta', 'surename': 'Łaput'}),
+                                    pytest.param(3, {'name': 'v678%^&*UHGFR67uhgt67uko98hgef', 'surename': 'HablbaWW__loooll12(()\\'})
+                                    ])
+def test_get_patient(pk, patient):
+    # client.post('/patient', json=patient)
+    response = client.get(f'/patient/{pk}')
+    assert response.status_code == 200
+    assert response.json() == {"name": patient['name'], "surename": patient['surename']}
