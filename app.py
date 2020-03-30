@@ -1,10 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+import json
 
 app = FastAPI()
 
 counter: int = 0
 patients = []
+
 
 @app.get('/')
 def hello():
@@ -35,10 +37,9 @@ def get_patient(pk: int):
     global patients
     patient_resp = next((patient for patient in patients if patient.id == pk), None)
     if patient_resp:
-        return patient_resp.patient
+        return {'name': patient_resp.patient.name, 'surename': patient_resp.patient.surename}
     else:
         raise HTTPException(status_code=204)  # Return HTTP 404 Not Found Error
-
 
 
 @app.get('/method')
