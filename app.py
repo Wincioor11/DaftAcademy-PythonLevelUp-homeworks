@@ -32,12 +32,17 @@ def add_patient(patient: AddPatientRq):
     return patient
 
 
+class GetPatientResp(BaseModel):
+    name: str
+    surename: str
+
+
 @app.get('/patient/{pk}')
 def get_patient(pk: int):
     global patients
     patient_resp = next((patient for patient in patients if patient.id == pk), None)
     if patient_resp:
-        return {'name': patient_resp.patient.name, 'surename': patient_resp.patient.surename}
+        return GetPatientResp(name=patient_resp.patient.name, surename=patient_resp.patient.surename)
     else:
         raise HTTPException(status_code=204)  # Return HTTP 404 Not Found Error
 
