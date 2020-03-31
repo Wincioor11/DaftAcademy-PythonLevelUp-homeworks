@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Response, status
+from fastapi import FastAPI, Response, status, HTTPException
 from pydantic import BaseModel
 import json
 
@@ -42,12 +42,12 @@ class GetPatientResp(BaseModel):
 @app.get('/patient/{pk}')
 def get_patient(pk: int):
     global patients
+
     patient_resp = next((patient for patient in patients if patient.id == pk), None)
     if patient_resp:
         return GetPatientResp(name=patient_resp.patient.name, surename=patient_resp.patient.surename)
     else:
-
-        return JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content={"message": "204 - Not Found"})  # Return HTTP 204 No Content
+        raise HTTPException(status_code=204, detail="No Content")
 
 
 @app.get('/method')
