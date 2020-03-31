@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Response, status
 from pydantic import BaseModel
 import json
 
@@ -44,7 +44,7 @@ def get_patient(pk: int):
     if patient_resp:
         return GetPatientResp(name=patient_resp.patient.name, surename=patient_resp.patient.surename)
     else:
-        return HTTPException(status_code=204) # Return HTTP 204 No Content
+        return Response(status_code=status.HTTP_204_NO_CONTENT)  # Return HTTP 204 No Content
 
 
 @app.get('/method')
