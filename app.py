@@ -34,20 +34,15 @@ def add_patient(patient: AddPatientRq):
     return patient
 
 
-class GetPatientResp(BaseModel):
-    name: str
-    surename: str
-
-
 @app.get('/patient/{pk}')
 def get_patient(pk: int):
     global patients
 
     patient_resp = next((patient for patient in patients if patient.id == pk), None)
     if patient_resp:
-        return GetPatientResp(name=patient_resp.patient.name, surename=patient_resp.patient.surename)
+        return patient_resp.patient
     else:
-        raise HTTPException(status_code=204, detail="No Content")
+        return Response(status_code=204)
 
 
 @app.get('/method')
