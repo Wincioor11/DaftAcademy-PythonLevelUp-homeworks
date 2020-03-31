@@ -46,8 +46,8 @@ def get_patient(pk: int):
     if patient_resp:
         return GetPatientResp(name=patient_resp.patient.name, surename=patient_resp.patient.surename)
     else:
-        return Response(status_code=status.HTTP_204_NO_CONTENT, content={'status':status.HTTP_204_NO_CONTENT,
-                                                                         'message': 'No Content'})  # Return HTTP 204 No Content
+
+        return JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content={"message": "204 - Not Found"})  # Return HTTP 204 No Content
 
 
 @app.get('/method')
