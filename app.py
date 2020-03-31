@@ -1,8 +1,8 @@
-from fastapi import FastAPI, Response, status, HTTPException
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import json
 
-from starlette.responses import JSONResponse
 
 app = FastAPI()
 
@@ -42,7 +42,7 @@ def get_patient(pk: int):
     if patient_resp:
         return patient_resp.patient
     else:
-        return Response(status_code=204)
+        return JSONResponse(status_code=204, content={})
 
 
 @app.get('/method')
