@@ -28,9 +28,10 @@ class AddPatientResp(BaseModel):
 @app.post('/patient')
 def add_patient(patient: AddPatientRq):
     global counter, patients
-    counter += 1
+
     patient = AddPatientResp(id=counter, patient=patient)
     patients.append(patient)
+    counter += 1
     return patient
 
 

@@ -26,10 +26,11 @@ def test_method():
                                     ])
 def test_add_patient(patient):
     global counter
-    counter += 1
+
     response = client.post('/patient', json=patient)
     assert response.status_code == 200
     assert response.json() == {"id": counter, "patient": patient}
+    counter += 1
 
 
 @pytest.mark.parametrize('pk, patient', [
