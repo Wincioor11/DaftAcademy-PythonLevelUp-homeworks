@@ -1,12 +1,9 @@
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Response
 from pydantic import BaseModel
-import json
 
 
 app = FastAPI()
 
-counter: int = 0
 patients = []
 
 
@@ -29,9 +26,8 @@ class AddPatientResp(BaseModel):
 def add_patient(patient: AddPatientRq):
     global counter, patients
 
-    patient = AddPatientResp(id=counter, patient=patient)
+    patient = AddPatientResp(id=len(patients), patient=patient)
     patients.append(patient)
-    counter += 1
     return patient
 
 
@@ -43,7 +39,7 @@ def get_patient(pk: int):
     if patient_resp:
         return patient_resp.patient
     else:
-        return JSONResponse(status_code=204, content={})
+        return Response(status_code=204)
 
 
 @app.get('/method')
