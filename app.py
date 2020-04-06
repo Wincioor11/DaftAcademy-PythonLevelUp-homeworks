@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Response, Request
 from pydantic import BaseModel
 
 
@@ -24,7 +24,7 @@ class AddPatientResp(BaseModel):
 
 @app.post('/patient')
 def add_patient(patient: AddPatientRq):
-    global counter, patients
+    global patients
 
     patient = AddPatientResp(id=len(patients), patient=patient)
     patients.append(patient)
@@ -42,21 +42,7 @@ def get_patient(pk: int):
         return Response(status_code=204)
 
 
-@app.get('/method')
-def method():
-    return {"method": "GET"}
+@app.route('/method', methods=['Get', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
+def method(request: Request):
+    return {"method": request.method}
 
-
-@app.post('/method')
-def method():
-    return {"method": "POST"}
-
-
-@app.put('/method')
-def method():
-    return {"method": "PUT"}
-
-
-@app.delete('/method')
-def method():
-    return {"method": "DELETE"}
