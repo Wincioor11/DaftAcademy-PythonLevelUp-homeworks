@@ -1,15 +1,17 @@
-from fastapi.testclient import TestClient
 import pytest
+from fastapi.testclient import TestClient
+
 from app import app
 
 client = TestClient(app)
 
 counter = 0
 
-def test_hello():
-    response = client.get('/')
-    assert response.status_code == 200
-    assert response.json() == {"message": "Hello World during the coronavirus pandemic!"}
+
+# def test_hello():
+#     response = client.get('/')
+#     assert response.status_code == 200
+#     assert response.json() == {"message": "Hello World during the coronavirus pandemic!"}
 
 
 # @pytest.mark.parametrize('method', ['get', 'post', 'put', 'delete'])
