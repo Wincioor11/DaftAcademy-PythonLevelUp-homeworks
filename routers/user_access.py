@@ -1,5 +1,6 @@
 import secrets
 from hashlib import sha256
+from typing import List
 
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import RedirectResponse
@@ -8,9 +9,12 @@ from starlette import status
 
 router = APIRouter()
 router.secret_key = 'IK37DHYW92#0?PR1sOHR2311aQLR{[JNCREKCS1@LDNT6YHST389DV.A!1SGKJW4'  # 64 characters 'secret' key
+
 user = {'login': 'trudnY', 'password': 'PaC13Nt'}
 
 security = HTTPBasic()
+
+tokens: List[dict] = []
 
 
 @router.get('/welcome')
@@ -44,9 +48,12 @@ def welcome():
 
 
 @router.post('/login')
-def login(response: RedirectResponse, credentials: HTTPBasicCredentials = Depends(security)):
+def login(credentials: HTTPBasicCredentials = Depends(security)):
     correct_username = secrets.compare_digest(credentials.username, user['login'])
     correct_password = secrets.compare_digest(credentials.password, user['password'])
+
+    global tokens
+
     if not (correct_username and correct_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -54,7 +61,12 @@ def login(response: RedirectResponse, credentials: HTTPBasicCredentials = Depend
             headers={"WWW-Authenticate": "Basic"},
         )
     session_token = sha256(str.encode(f"{credentials.username}{credentials.password}{router.secret_key}")).hexdigest()
+
     response = RedirectResponse(url='/welcome', status_code=302)
     response.set_cookie(key="session_token", value=session_token)
+
+    session = {'user': credentials.username, 'token': session_token}
+    tokens.append(session)
+
     return response
 
