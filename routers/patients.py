@@ -26,7 +26,7 @@ class AddPatientResp(BaseModel):
 
 @router.post('/patient')
 @authorization.require_cookie_authorization(SESSION_TOKEN)
-def add_patient(patient: AddPatientRq):
+async def add_patient(request: Request, patient: AddPatientRq):
     global patients
 
     patient = AddPatientResp(id=len(patients), patient=patient)
@@ -36,7 +36,7 @@ def add_patient(patient: AddPatientRq):
 
 @router.get('/patient/{pk}')
 @authorization.require_cookie_authorization(SESSION_TOKEN)
-def get_patient(pk: int):
+async def get_patient(request: Request, pk: int):
     global patients
 
     patient_resp = next((patient for patient in patients if patient.id == pk), None)
@@ -47,6 +47,6 @@ def get_patient(pk: int):
 
 
 @router.route('/method', methods=['Get', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
-def method(request: Request):
+async def method(request: Request):
     return {"method": request.method}
 
