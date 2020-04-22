@@ -18,7 +18,7 @@ patients = {}
 
 class PatientModel(BaseModel):
     name: str
-    surename: str  # surname misspelled - on  purpose for testing with repl.it
+    surname: str
 
 
 # class PatientResponseModel(BaseModel):
@@ -47,7 +47,7 @@ async def add_patient(request: Request, patient: PatientModel):
 @router.get('/patient')
 @authorization.require_cookie_authorization(SESSION_TOKEN)
 async def get_patients(request: Request):
-    """Returns dict od patients as JSON"""
+    """Returns dict of patients as JSON"""
     return patients
 
 
