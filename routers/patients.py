@@ -69,9 +69,8 @@ async def delete_patient(request: Request, pk: int):
 
     if pk in patients.keys():
         del patients[pk]
-        return Response(status_code=200)
-    else:
-        return Response(status_code=204)
+
+    return Response(status_code=204)
 
 
 # @router.route('/method', methods=['Get', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
