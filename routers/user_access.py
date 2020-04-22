@@ -4,6 +4,7 @@ from hashlib import sha256
 from fastapi import APIRouter, HTTPException, Depends, Request, status
 from fastapi.responses import RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.templating import Jinja2Templates
 
 from decorators import authorization
 from globalvariables import SECRET_KEY, SESSION_TOKEN
@@ -15,23 +16,21 @@ user = {'login': 'trudnY', 'password': 'PaC13Nt'}
 
 security = HTTPBasic()
 
-# cookie_sec = APIKeyCookie()
-
-# tokens: List[dict] = []
+templates = Jinja2Templates(directory="templates")
 
 
 @router.get('/welcome')
 @router.get('/')
-def welcome():
-    return {"message": "Welcome to my world!"}
+@authorization.require_cookie_authorization(SESSION_TOKEN)
+async def welcome(request: Request):
+    response = templates.TemplateResponse('welcome.html', {'request': request, 'user': user['login']})
+    return response
 
 
 @router.post('/login')
-def login(credentials: HTTPBasicCredentials = Depends(security)):
+async def login(credentials: HTTPBasicCredentials = Depends(security)):
     correct_username = secrets.compare_digest(credentials.username, user['login'])
     correct_password = secrets.compare_digest(credentials.password, user['password'])
-
-    global tokens
 
     if not (correct_username and correct_password):
         raise HTTPException(
