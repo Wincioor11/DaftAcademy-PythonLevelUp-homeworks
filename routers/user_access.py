@@ -1,50 +1,29 @@
 import secrets
 from hashlib import sha256
-from typing import List
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request, status
 from fastapi.responses import RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from starlette import status
+
+from decorators import authorization
+from globalvariables import SECRET_KEY, SESSION_TOKEN
 
 router = APIRouter()
-router.secret_key = 'IK37DHYW92#0?PR1sOHR2311aQLR{[JNCREKCS1@LDNT6YHST389DV.A!1SGKJW4'  # 64 characters 'secret' key
+router.secret_key = SECRET_KEY  # 64 characters 'secret' key
 
 user = {'login': 'trudnY', 'password': 'PaC13Nt'}
 
 security = HTTPBasic()
 
-tokens: List[dict] = []
+# cookie_sec = APIKeyCookie()
+
+# tokens: List[dict] = []
 
 
 @router.get('/welcome')
 @router.get('/')
 def welcome():
     return {"message": "Welcome to my world!"}
-
-
-# class LoginRq(BaseModel):
-#     login: str
-#     password: str
-
-
-# @router.post('/login')
-# async def login(request: Request):
-#     form_body = await request.json()
-#     print(form_body)
-#     # login = ''
-#     # password = ''
-#     try:
-#         login = form_body['login']
-#         password = form_body['pass']
-#     except:
-#         raise HTTPException(status_code=400, detail="Missing login or pass fields in request body")
-#
-#     if login == user['login'] and password == user['pass']:
-#         return RedirectResponse(url='/welcome', status_code=302)
-#         # return {"message": "POSZŁO!"}
-#     else:
-#         raise HTTPException(status_code=401, detail="Unoauthorized - provide correct login and pass")
 
 
 @router.post('/login')
@@ -60,13 +39,21 @@ def login(credentials: HTTPBasicCredentials = Depends(security)):
             detail="Incorrect login or password",
             headers={"WWW-Authenticate": "Basic"},
         )
-    session_token = sha256(str.encode(f"{credentials.username}{credentials.password}{router.secret_key}")).hexdigest()
+    session_token = sha256(str.encode(f"{credentials.username}:{router.secret_key}")).hexdigest()
 
-    response = RedirectResponse(url='/welcome', status_code=302)
-    response.set_cookie(key="session_token", value=session_token)
+    response = RedirectResponse(url='/welcome', status_code=status.HTTP_302_FOUND)
+    response.set_cookie(key=SESSION_TOKEN, value=session_token)
 
-    session = {'user': credentials.username, 'token': session_token}
-    tokens.append(session)
+    # session = {'user': credentials.username, 'token': session_token}
+    # tokens.append(session)
 
+    return response
+
+
+@router.post('/logout')
+@authorization.require_cookie_authorization(SESSION_TOKEN)
+async def logout(request: Request):
+    response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    response.delete_cookie(SESSION_TOKEN)
     return response
 

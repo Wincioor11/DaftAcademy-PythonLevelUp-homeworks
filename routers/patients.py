@@ -1,6 +1,8 @@
 from fastapi import Response, Request, APIRouter
 from pydantic import BaseModel
 
+from decorators import authorization
+from globalvariables import SESSION_TOKEN
 
 router = APIRouter()
 
@@ -23,6 +25,7 @@ class AddPatientResp(BaseModel):
 
 
 @router.post('/patient')
+@authorization.require_cookie_authorization(SESSION_TOKEN)
 def add_patient(patient: AddPatientRq):
     global patients
 
@@ -32,6 +35,7 @@ def add_patient(patient: AddPatientRq):
 
 
 @router.get('/patient/{pk}')
+@authorization.require_cookie_authorization(SESSION_TOKEN)
 def get_patient(pk: int):
     global patients
 
