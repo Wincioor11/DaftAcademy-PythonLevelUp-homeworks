@@ -33,7 +33,11 @@ async def add_patient(request: Request, patient: PatientModel):
 
     # new_patient = PatientResponseModel(id=len(patients), patient=patient)
     # patients.append(new_patient)
-    new_id = len(patients.keys())
+    if len(patients.keys()) == 0:
+        new_id = 0
+    else:
+        new_id = max(patients.keys()) + 1
+
     patients[new_id] = patient
 
     response = RedirectResponse(url=f'/patient/{new_id}', status_code=302)
