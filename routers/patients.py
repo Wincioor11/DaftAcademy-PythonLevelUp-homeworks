@@ -1,9 +1,9 @@
 from fastapi import Response, Request, APIRouter
 from fastapi.responses import RedirectResponse
-from pydantic import BaseModel
 
 from decorators import authorization
 from globalvariables import SESSION_TOKEN
+from models.patient import PatientModel
 
 router = APIRouter()
 
@@ -15,15 +15,6 @@ patients = {}
 # def hello():
 #     return {"message": "Hello World during the coronavirus pandemic!"}
 
-
-class PatientModel(BaseModel):
-    name: str
-    surname: str
-
-
-# class PatientResponseModel(BaseModel):
-#     id: int
-#     patient: PatientModel
 
 
 @router.post('/patient')
