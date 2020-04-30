@@ -12,6 +12,7 @@ from starlette.templating import Jinja2Templates
 from globalvariables import SESSION_TOKEN, SECRET_KEY
 # from routers import patients, user_access
 from models.album import AlbumModel
+from models.customer import CustomerModel
 from models.patient import PatientModel
 
 
@@ -212,3 +213,38 @@ async def get_album_by_id(response: Response, album_id: int):
         response.status_code = status.HTTP_404_NOT_FOUND
         return {"detail": {"error": "Sorry, there's no album with that ID."}}
     return album
+
+
+@app.put('/customers/{customer_id}')
+async def edit_customer(response: Response, new_customer: CustomerModel, customer_id: int):
+    app.db_connection.row_factory = aiosqlite.Row
+
+    query = 'SELECT customerid FROM customers WHERE customerid = ? ;'
+    cursor = await app.db_connection.execute(query, (customer_id,))
+    customer = await cursor.fetchone()
+
+
+    if customer is None:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return {"detail": {"error": "Sorry, there's no customer with that ID."}}
+
+    update_customer = new_customer.dict(exclude_unset=True)
+
+    query = 'UPDATE customers SET '
+    for field in update_customer.keys():
+        query += f'{field} = ? ,'
+    query=query[:-1]
+    query += 'WHERE customerid = ? ;'
+
+
+    values = list(update_customer.values())
+    values.append(customer_id)
+
+    await app.db_connection.execute(query, tuple(values))
+    await app.db_connection.commit()
+
+    cursor = await app.db_connection.execute('SELECT * FROM customers WHERE customerid = ? ;', (customer_id,))
+    customer = await cursor.fetchone()
+
+    return customer
+
