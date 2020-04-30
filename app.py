@@ -29,12 +29,13 @@ class DaftAPI(FastAPI):
 
 
 app = DaftAPI()
+
+
 # app.include_router(patients.router, tags=['endpoints for homework1'])
 # app.include_router(user_access.router, tags=['endpoints for user access'])
 
 
 def is_logged(session: str = Depends(app.cookie_sec), silent: bool = False):
-
     try:
         payload = jwt.decode(session, app.secret_key)
         return payload.get(app.API_KEY)
@@ -98,7 +99,7 @@ async def login(credentials: HTTPBasicCredentials = Depends(app.security)):
             detail="Incorrect login or password",
             headers={"WWW-Authenticate": "Basic"},
         )
-    #session_token = sha256(str.encode(f"{credentials.username}:{app.secret_key}")).hexdigest()
+    # session_token = sha256(str.encode(f"{credentials.username}:{app.secret_key}")).hexdigest()
     session_token = jwt.encode({app.API_KEY: True}, app.secret_key).decode("utf-8")
 
     response = RedirectResponse(url='/welcome', status_code=status.HTTP_302_FOUND)
@@ -116,12 +117,12 @@ async def logout(is_logged: bool = Depends(is_logged)):
     response.delete_cookie(app.API_KEY)
     return response
 
+
 # Patients endpoints
 
 
 @app.post('/patient')
 async def add_patient(patient: PatientModel, is_logged: bool = Depends(is_logged)):
-
     # new_patient = PatientResponseModel(id=len(patients), patient=patient)
     # patients.append(new_patient)
     if len(app.patients.keys()) == 0:
@@ -136,13 +137,13 @@ async def add_patient(patient: PatientModel, is_logged: bool = Depends(is_logged
 
 
 @app.get('/patient')
-async def get_patients( is_logged: bool = Depends(is_logged)):
+async def get_patients(is_logged: bool = Depends(is_logged)):
     """Returns dict of patients as JSON"""
     return app.patients
 
 
 @app.get('/patient/{pk}')
-async def get_patient(pk: int,  is_logged: bool = Depends(is_logged)):
+async def get_patient(pk: int, is_logged: bool = Depends(is_logged)):
     # patient_resp = next((patient for patient in patients if patient.id == pk), None)
 
     if pk in app.patients.keys():
@@ -153,7 +154,6 @@ async def get_patient(pk: int,  is_logged: bool = Depends(is_logged)):
 
 @app.delete('/patient/{pk}')
 async def delete_patient(pk: int, is_logged: bool = Depends(is_logged)):
-
     if pk in app.patients.keys():
         del app.patients[pk]
 
@@ -167,7 +167,18 @@ async def get_tracks(page: int = 0, per_page: int = 10):
     offset = page * per_page
     query = 'SELECT * FROM tracks ORDER BY trackid LIMIT ? OFFSET ? ;'
     app.db_connection.row_factory = aiosqlite.Row
-    cursor = await app.db_connection.execute(query, (per_page, offset, ))
-    response_data = await cursor.fetchall()
-    print(response_data)
-    return response_data
+    cursor = await app.db_connection.execute(query, (per_page, offset,))
+    tracks = await cursor.fetchall()
+    return tracks
+
+
+@app.get("/tracks/composers")
+async def tracks_composers(response: Response, composer_name: str):
+    app.db_connection.row_factory = lambda row, x: x[0]
+    cursor = await app.db_connection.execute("SELECT Name FROM tracks WHERE Composer = ? ORDER BY Name",
+                                             (composer_name,))
+    tracks = await cursor.fetchall()
+    if len(tracks) == 0:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return {"detail": {"error": "Sorry, there's no tracks of that composer."}}
+    return tracks
