@@ -248,3 +248,73 @@ async def edit_customer(response: Response, new_customer: CustomerModel, custome
 
     return customer
 
+
+@app.get('/sales')
+async def get_statistics(response: Response, category: str):
+    app.db_connection.row_factory = aiosqlite.Row
+
+    if category == "customers":
+        app.db_connection.row_factory = aiosqlite.Row
+        cursor = await app.db_connection.execute("""
+        SELECT invoices.CustomerId, Email, Phone, ROUND(SUM(Total), 2) AS Sum
+        FROM invoices JOIN customers on invoices.CustomerId = customers.CustomerId
+        GROUP BY invoices.CustomerId ORDER BY Sum DESC, invoices.CustomerId
+        """)
+        stats = await cursor.fetchall()
+        return stats
+    elif category == "genres":
+        app.db_connection.row_factory = aiosqlite.Row
+        cursor = await app.db_connection.execute("""
+        SELECT genres.Name, SUM(Quantity) AS Sum FROM invoice_items
+        JOIN tracks ON invoice_items.TrackId = tracks.TrackId
+        JOIN genres ON tracks.GenreId = genres.GenreId
+        GROUP BY tracks.GenreId ORDER BY Sum DESC, genres.Name
+        """)
+        stats = await cursor.fetchall()
+        return stats
+    elif category == "media_types":
+        app.db_connection.row_factory = aiosqlite.Row
+        cursor = await app.db_connection.execute("""
+        SELECT media_types.Name, SUM(Quantity) AS Sum FROM invoice_items
+        JOIN tracks ON invoice_items.TrackId = tracks.TrackId
+        JOIN media_types ON tracks.MediaTypeId = media_types.MediaTypeId
+        GROUP BY tracks.MediaTypeId ORDER BY Sum DESC, media_types.Name
+        """)
+        stats = await cursor.fetchall()
+        return stats
+    elif category == "artists":
+        app.db_connection.row_factory = aiosqlite.Row
+        cursor = await app.db_connection.execute("""
+        SELECT artists.Name, SUM(Quantity) AS Sum FROM invoice_items
+        JOIN tracks ON invoice_items.TrackId = tracks.TrackId
+        JOIN albums ON tracks.AlbumId = albums.AlbumId
+        JOIN artists ON albums.ArtistId = artists.ArtistId
+        GROUP BY albums.ArtistId ORDER BY Sum DESC, artists.Name
+        """)
+        stats = await cursor.fetchall()
+        return stats
+    elif category == "albums":
+        app.db_connection.row_factory = aiosqlite.Row
+        cursor = await app.db_connection.execute("""
+        SELECT albums.Title, artists.Name as Artist, SUM(Quantity) AS Sum FROM invoice_items
+        JOIN tracks ON invoice_items.TrackId = tracks.TrackId
+        JOIN albums ON tracks.AlbumId = albums.AlbumId
+        JOIN artists ON albums.ArtistId = artists.ArtistId
+        GROUP BY tracks.AlbumId ORDER BY Sum DESC, albums.Title
+        """)
+        stats = await cursor.fetchall()
+        return stats
+    elif category == "tracks":
+        app.db_connection.row_factory = aiosqlite.Row
+        cursor = await app.db_connection.execute("""
+         SELECT tracks.Name, albums.Title as AlbumTitle, artists.Name as Artist, SUM(Quantity) AS Sum FROM invoice_items
+         JOIN tracks ON invoice_items.TrackId = tracks.TrackId
+         JOIN albums ON tracks.AlbumId = albums.AlbumId
+         JOIN artists ON albums.ArtistId = artists.ArtistId
+         GROUP BY invoice_items.TrackId ORDER BY Sum DESC, tracks.Name
+         """)
+        stats = await cursor.fetchall()
+        return stats
+    else:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return {"detail": {"error": "No such category."}}
