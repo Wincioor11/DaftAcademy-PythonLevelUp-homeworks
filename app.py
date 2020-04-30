@@ -11,6 +11,7 @@ from starlette.templating import Jinja2Templates
 
 from globalvariables import SESSION_TOKEN, SECRET_KEY
 # from routers import patients, user_access
+from models.album import AlbumModel
 from models.patient import PatientModel
 
 
@@ -173,7 +174,7 @@ async def get_tracks(page: int = 0, per_page: int = 10):
 
 
 @app.get("/tracks/composers")
-async def tracks_composers(response: Response, composer_name: str):
+async def get_tracks_composers(response: Response, composer_name: str):
     app.db_connection.row_factory = lambda row, x: x[0]
     cursor = await app.db_connection.execute("SELECT Name FROM tracks WHERE Composer = ? ORDER BY Name",
                                              (composer_name,))
@@ -182,3 +183,32 @@ async def tracks_composers(response: Response, composer_name: str):
         response.status_code = status.HTTP_404_NOT_FOUND
         return {"detail": {"error": "Sorry, there's no tracks of that composer."}}
     return tracks
+
+
+@app.post("/albums")
+async def add_album(response: Response, album: AlbumModel):
+    app.db_connection.row_factory = None
+    query = "SELECT ArtistId FROM artists WHERE ArtistId = ?"
+    cursor = await app.db_connection.execute(query, (album.artist_id, ))
+    result = await cursor.fetchone()
+    if result is None:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return {"detail": {"error": "Such artist does not exist in chinook database."}}
+    cursor = await app.db_connection.execute("INSERT INTO albums (Title, ArtistId) VALUES (?, ?)",
+                                                (album.title, album.artist_id, ))
+    await app.db_connection.commit()
+    response.status_code = status.HTTP_201_CREATED
+    return {"AlbumId": cursor.lastrowid, "Title": album.title, "ArtistId": album.artist_id}
+
+
+@app.get('/albums/{album_id}')
+async def get_album_by_id(response: Response, album_id: int):
+    app.db_connection.row_factory = aiosqlite.Row
+    query = 'SELECT albumid, title, artistid FROM albums where albumid = ? ;'
+    cursor = await app.db_connection.execute(query, (album_id, ))
+    album = await cursor.fetchone()
+
+    if album is None:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return {"detail": {"error": "Sorry, there's no album with that ID."}}
+    return album
